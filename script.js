@@ -22,6 +22,7 @@ var data=data;
 function addPhotos() {
     var template=g('#wrap').innerHTML;
     var html=[];
+    var nav=[];
     for(s in data){
         var _html=template
             .replace('{{index}}',s)
@@ -29,7 +30,11 @@ function addPhotos() {
             .replace('{{caption}}',data[s].caption)
             .replace('{{desc}}',data[s].desc);
         html.push(_html);
+
+        nav.push('<span id="nav_'+s+'"  onclick="turn(g(\'#photo_'+s+'\'))" class="i">&nbsp;</span>');
+
     }
+    html.push('<div class="nav">'+nav.join('')+'</div>');
     g('#wrap').innerHTML=html.join('');
     rsort(random([0,data.length]));
 }
@@ -62,6 +67,14 @@ function rsort(n) {
 
     for(s=0;s<_photo.length;s++){
         _photo[s].className=_photo[s].className.replace(/\s*photo_center\s*/,' ');
+        _photo[s].className=_photo[s].className.replace(/\s*photo_front\s*/,' ');
+        _photo[s].className=_photo[s].className.replace(/\s*photo_back\s*/,' ');
+
+        _photo[s].className+=' photo_front ';
+        _photo[s].style.left='';
+        _photo[s].style.top='';
+        _photo[s].style['transform']=_photo[s].style['-webkit-transform']='rotate(360deg) scale(1.3)' ;
+
         photos.push(_photo[s]);
     }
     var photo_center = g('#photo_'+n);
@@ -78,15 +91,23 @@ function rsort(n) {
         var photo = photos_left[s];
         photo.style.left=random(ranges.left.x)+'px';
         photo.style.top=random(ranges.left.y)+'px';
-        photo.style['-webkit-transform']='rotate('+random([-150,150])+'deg)';
+        photo.style['transform']=photo.style['-webkit-transform']='rotate('+random([-150,150])+'deg) scale(1)';
 
     }
     for(s in photos_right){
         var photo = photos_right[s];
         photo.style.left=random(ranges.right.x)+'px';
         photo.style.top=random(ranges.right.y)+'px';
-        photo.style['-webkit-transform']='rotate('+random([-150,150])+'deg)';
+        photo.style['transform']=photo.style['-webkit-transform']='rotate('+random([-150,150])+'deg) scale(1)';
     }
+
+    //控制按钮处理
+    var navs=g('.i');
+    for(var s=0;s<navs.length;s++){
+        navs[s].className=navs[s].className.replace(/\s*i_current\s*/,' ');
+        navs[s].className=navs[s].className.replace(/\s*i_back\s*/,' ');
+    }
+    g('#nav_'+n).className+=' i_current ';
     console.log(photos.length)
 }
 
@@ -94,10 +115,16 @@ function rsort(n) {
 //翻面控制
 function turn(elem) {
     var cls = elem.className;
+    var n=elem.id.split('_')[1];
+    if(!/photo_center/.test(cls)){
+        return rsort(n);
+    }
     if(/photo_front/.test(cls)){
         cls=cls.replace(/photo_front/,'photo_back');
+        g('#nav_'+n).className+=' i_back ';
     }else{
         cls=cls.replace(/photo_back/,'photo_front');
+        g('#nav_'+n).className=g('#nav_'+n).className.replace(/\s*i_back\s*/,' ');
     }
     return elem.className=cls;
 }
